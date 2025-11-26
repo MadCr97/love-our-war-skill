@@ -3,10 +3,8 @@ import random
 
 app = Flask(__name__)
 
-# Very simple in-memory state: user_id -> mode ("party" or "normal")
 user_modes = {}
 
-# Chaos lists
 PARTY_CHAOS = [
     "CHAOS (Party Mode): Take one drink if you played a Red Flag.",
     "CHAOS (Party Mode): The player with the lowest Love Points takes a sip.",
@@ -23,7 +21,6 @@ NORMAL_CHAOS = [
 
 
 def simple_text(text: str) -> dict:
-    """Build Kakao simpleText JSON response."""
     return {
         "version": "2.0",
         "template": {
@@ -50,15 +47,14 @@ def get_user_id(body):
 def party_on():
     body = request.get_json(force=True)
     user_id = get_user_id(body)
-
     user_modes[user_id] = "party"
 
     text = (
-        "🍻 PARTY MODE ON!\n\n"
+        "PARTY MODE ON!\n\n"
         "Chaos effects may now include drinking actions or social dares.\n"
-        "You can switch modes at any time by typing “PARTY OFF”.\n\n"
+        "You can switch modes at any time by typing 'PARTY OFF'.\n\n"
         "Whenever you want a chaos event, type:\n"
-        "• CHAOS"
+        "- CHAOS"
     )
     return jsonify(simple_text(text))
 
@@ -67,15 +63,14 @@ def party_on():
 def party_off():
     body = request.get_json(force=True)
     user_id = get_user_id(body)
-
     user_modes[user_id] = "normal"
 
     text = (
-        "✨ PARTY MODE OFF!\n\n"
+        "PARTY MODE OFF!\n\n"
         "Chaos effects will now be clean and alcohol-free.\n"
-        "You can switch modes at any time by typing “PARTY ON”.\n\n"
+        "You can switch modes at any time by typing 'PARTY ON'.\n\n"
         "Whenever you want a chaos event, type:\n"
-        "• CHAOS"
+        "- CHAOS"
     )
     return jsonify(simple_text(text))
 
