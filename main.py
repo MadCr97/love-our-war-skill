@@ -38,60 +38,63 @@ def simple_text(text: str) -> dict:
     }
 
 
-@app.route("/loveourwar", methods=["POST"])
-def love_our_war():
-    body = request.get_json(force=True)
-
-    # Get user ID (to remember mode per user)
-    user_id = (
+def get_user_id(body):
+    return (
         body.get("userRequest", {})
         .get("user", {})
         .get("id", "anonymous")
     )
 
-    action = body.get("action", {})
-    params = action.get("params", {})
-    # We will send a "mode" param from Kakao blocks
-    mode_param = params.get("mode", "")
 
-    # 1) PARTY ON
-    if mode_param == "party_on":
-        user_modes[user_id] = "party"
-        text = (
-            "🍻 PARTY MODE ON!\n\n"
-            "Chaos effects may now include drinking actions or social dares.\n"
-            "Whenever you want a chaos event, type CHAOS."
-        )
-        return jsonify(simple_text(text))
+@app.route("/party_on", methods=["POST"])
+def party_on():
+    body = request.get_json(force=True)
+    user_id = get_user_id(body)
 
-    # 2) PARTY OFF
-    if mode_param == "party_off":
-        user_modes[user_id] = "normal"
-        text = (
-            "✨ PARTY MODE OFF!\n\n"
-            "Chaos effects will now be clean and alcohol-free.\n"
-            "Whenever you want a chaos event, type CHAOS."
-        )
-        return jsonify(simple_text(text))
+    user_modes[user_id] = "party"
 
-    # 3) CHAOS
-    if mode_param == "chaos":
-        current_mode = user_modes.get(user_id, "normal")
-        if current_mode == "party":
-            text = random.choice(PARTY_CHAOS)
-        else:
-            text = random.choice(NORMAL_CHAOS)
-
-        return jsonify(simple_text(text))
-
-    # Fallback if something weird happens
     text = (
-        "I’m not sure what you want.\n"
-        "Try PARTY ON, PARTY OFF, or CHAOS again."
+        "🍻 PARTY MODE ON!\n\n"
+        "Chaos effects may now include drinking actions or social dares.\n"
+        "You can switch modes at any time by typing “PARTY OFF”.\n\n"
+        "Whenever you want a chaos event, type:\n"
+        "• CHAOS"
     )
     return jsonify(simple_text(text))
 
 
-if __name__ == "__main__":
-    # Replit usually sets PORT automatically, but 8000 is fine.
-    app.run(host="0.0.0.0", port=8000)
+@app.route("/party_off", methods=["POST"])
+def party_off():
+    body = request.get_json(force=True)
+    user_id = get_user_id(body)
+
+    user_modes[user_id] = "normal"
+
+    text = (
+        "✨ PARTY MODE OFF!\n\n"
+        "Chaos effects will now be clean and alcohol-free.\n"
+        "You can switch modes at any time by typing “PARTY ON”.\n\n"
+        "Whenever you want a chaos event, type:\n"
+        "• CHAOS"
+    )
+    return jsonify(simple_text(text))
+
+
+@app.route("/chaos", methods=["POST"])
+def chaos():
+    body = request.get_json(force=True)
+    user_id = get_user_id(body)
+
+    current_mode = user_modes.get(user_id, "normal")
+
+    if current_mode == "party":
+        text = random.choice(PARTY_CHAOS)
+    else:
+        text = random.choice(NORMAL_CHAOS)
+
+    return jsonify(simple_text(text))
+
+
+@app.route("/", methods=["GET"])
+def health():
+    return "LOVE Our WAR skill is running.", 200
